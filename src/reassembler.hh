@@ -4,9 +4,29 @@
 
 #include <string>
 
+// my
+// #include<map>
+#include<vector>
+#include<algorithm>
+#include<iostream>
+//
 class Reassembler
 {
+//my
+private:
+  uint64_t capacity_=0;//总容量
+  uint64_t curIndex=-1;
+  std::vector<char> buf;
+  std::vector<bool> have;
+  uint64_t isLastIndex=-1;
+  uint64_t bufNum=0;
+
+// 
+  
 public:
+//my
+  Reassembler();
+// 
   /*
    * Insert a new substring to be reassembled into a ByteStream.
    *   `first_index`: the index of the first byte of the substring
@@ -30,5 +50,6 @@ public:
   void insert( uint64_t first_index, std::string data, bool is_last_substring, Writer& output );
 
   // How many bytes are stored in the Reassembler itself?
+  //重新组装程序本身存储了多少字节？
   uint64_t bytes_pending() const;
 };

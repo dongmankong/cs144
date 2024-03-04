@@ -10,6 +10,11 @@
 // immediately (from the `recv_frame` method), it stores them for
 // later retrieval. Otherwise, behaves identically to the underlying
 // implementation of NetworkInterface.
+//NetworkInterface的包装器，使主机端
+//接口异步：而不是返回接收到的数据报
+//立即（从“recv_frame”方法）存储它们
+//稍后检索。否则，行为与底层相同
+//NetworkInterface的实现。
 class AsyncNetworkInterface : public NetworkInterface
 {
   std::queue<InternetDatagram> datagrams_in_ {};
@@ -50,15 +55,31 @@ public:
 
 // A router that has multiple network interfaces and
 // performs longest-prefix-match routing between them.
+//具有多个网络接口和
+//在它们之间执行最长前缀匹配路由。 
 class Router
 {
   // The router's collection of network interfaces
+  //路由器的网络接口集合
   std::vector<AsyncNetworkInterface> interfaces_ {};
 
+//my
+  struct RouterItem
+  {
+    uint32_t route_prefix;
+    uint8_t prefix_length;
+    std::optional<Address> next_hop;
+    size_t interface_num ;
+  };
+  std::vector<RouterItem> routerTables{};
+//
 public:
   // Add an interface to the router
   // interface: an already-constructed network interface
   // returns the index of the interface after it has been added to the router
+//向路由器添加接口
+//接口：已构建的网络接口
+//返回接口添加到路由器后的索引 
   size_t add_interface( AsyncNetworkInterface&& interface )
   {
     interfaces_.push_back( std::move( interface ) );
@@ -80,5 +101,11 @@ public:
   // chooses the outbound interface and next-hop as specified by the
   // route with the longest prefix_length that matches the datagram's
   // destination address.
+//在接口之间路由数据包。对于每个接口，使用
+//maybe_receive（）方法来消耗每个传入的数据报和
+//在其中一个接口上将其发送到正确的下一跳。路由器
+//根据指定选择出站接口和下一个跃点
+//具有与数据报匹配的最长前缀长度的路由
+//目的地地址。
   void route();
 };
