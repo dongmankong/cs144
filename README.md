@@ -1,20 +1,220 @@
-Stanford CS 144 Networking Lab
-==============================
+可能有用的知识，请使用typora打开
 
-These labs are open to the public under the (friendly) request that to
-preserve their value as a teaching tool, solutions not be posted
-publicly by anybody.
+## c++基础
 
-Website: https://cs144.stanford.edu
+protected申明的变量可以被成员函数访问，包括参数中的同类实例
 
-To set up the build system: `cmake -S . -B build`
+类中的变量都需要先被初始化
 
-To compile: `cmake --build build`
+类中构造函数的申明顺序需要与成员变量的顺序一致
 
-To run tests: `cmake --build build --target test`
+遍历过程中删除迭代器
 
-To run speed benchmarks: `cmake --build build --target speed`
+std::map<KeyType, ValueType> myMap;
+// 填充myMap...
 
-To run clang-tidy (which suggests improvements): `cmake --build build --target tidy`
+for(auto it = myMap.begin(); it != myMap.end(); /* 无需在此处递增it */)
+{
+    if(需要删除当前键值对) // 替换为你的删除条件
+    {
+        it = myMap.erase(it); // erase会返回指向下一个元素的迭代器
+    }
+    else
+    {
+        ++it; // 如果没有删除当前元素，就递增迭代器
+    }
+}
 
-To format code: `cmake --build build --target format`
+
+
+std::nullopt_t 是一个类型，而 std::nullopt 是这个类型的一个常量实例
+
+
+
+std::optional是一个值语义的类型，它实际上包含了它所持有的对象。这意味着，当你创建一个std::optional<T>时，它会在栈上为T分配空间（如果T存在的话）。这与指针不同，指针通常指向堆上分配的内存。
+
+
+
+
+
+
+
+## 网络基础
+
+TCP（传输控制协议）是一个位于传输层的协议，它提供了可靠的、面向连接的通信。尽管它在传输层，但它建立在网络层提供的IP（Internet协议）之上。 
+
+ 在建立TCP连接时，首先需要通过IP找到目标计算机的地址，然后通过TCP的握手过程建立连接。 
+
+ 一旦连接建立，数据就可以在这个连接上进行传输。TCP通过将数据分割成数据包并添加序号和确认号等信息来进行数据传输。这些数据包在网络层使用IP进行路由，并在目标计算机上的TCP协议中按顺序重新组装，以确保数据的可靠传输。 
+
+ TCP在传输层建立连接并管理数据传输，在网络层则利用IP进行数据包的传输和路由 
+
+
+
+ 如果 `ACK` 标志位被设置，告诉 `TCPSender` 关心的 `ackno` 和 `window_size` 字段 
+
+ACK标志位为1表示确认号有效，为0表示报文中不包含确认信息，忽略确认号字段
+
+
+
+ 对于TCP来说，一个Sender和一个Receiver构成一条，嗯就叫他一条链接。客户端和服务器都各自包含一个Sender和一个Receiver。因此，client Sender ---> Serve Receiver构成一条链接；Serve Sender ---> client  Receiver也构成一条链接。TCP Connection就是为了建立和断开这两条链接。 
+
+
+
+Sender是Sender，Receiver是Receiver，Sender需要进行发送跟接收对面发回来的ack来处理发送队列。
+
+Receiver需要接收对面发来的信息进行 重新组装成原始数据流 来放入输入流。
+
+
+
+ 路由器从不考虑TCP、ARP或以太网帧。路由器甚至不知道链路层是什么样子的。路由器只考虑互联网数据报，并且只通过NetworkInterface抽象与链路层进行交互。当涉及到诸如“链路层地址是如何解析的?”或者“链路层是否有自己不同于IP的寻址方案?”或者“链路层帧的格式是什么?”或“数据报的有效载荷的含义是什么?”，路由器根本不在乎。
+
+
+
+当数据包经过路由器时，源MAC地址和目的MAC地址会发生变化。具体来说，每次数据包经过路由器，源MAC地址会被替换为该路由器接口的MAC地址，目的MAC地址会被替换为下一跳IP地址对应的MAC地址。这是因为MAC地址实际上只在当前局域网内有效，当数据跨网络到达另一个局域网时，其源MAC地址和目的MAC地址就需要发生变化。所以，虽然IP数据报的源IP地址和目的IP地址在传输过程中保持不变，但MAC地址会在每个路由器处进行更改。
+
+
+
+ip数据报 对应 mac帧
+
+
+
+
+
+## lab0
+
+安装cmake 
+
+卸载命令 sudo make uninstall
+
+
+
+FDWrapper( const FDWrapper& other ) = delete;：这是复制构造函数的声明，复制构造函数通常用于创建一个新对象，并将现有对象的所有成员变量复制到新对象中。然而，当你使用= delete;时，这个函数被禁用，意味着你不能复制一个FDWrapper对象。
+
+FDWrapper( FDWrapper&& other ) = delete;：这是移动构造函数的声明，但它也被删除了。移动构造函数通常用于创建一个新对象，并将现有对象的资源“移动”到新对象中。这通常涉及到将源对象的指针或句柄等资源转移到新对象，并将源对象置于无效或默认状态。然而，当你使用= delete;时，这个函数被禁用，意味着你不能移动一个FDWrapper对象。
+
+
+
+
+
+ cmake --build build 
+
+
+
+
+
+## lab1
+
+
+
+容量大小为 字节流中的大小+重装器可以容纳的大小
+
+如果字节流不能容纳内容，就不能再往里面加内容
+
+循环数组来存储容量位置
+
+ 实现一个 `stream reassembler` 将无序 `byte stream` 的碎片重新排序组合成正确的 `byte stream` 并写入 `ByteStream` 对象 `_output` 中。 
+
+ 每个碎片由开头位置，字符串内容组成。 
+
+
+
+
+
+
+
+
+
+## lab2
+
+
+
+ 在你的TCP实现中，你将使用最后一个重新组装的字节的索引作为checkpoint 
+
+
+
+序列号以随机数开头，值在0-2^32-1，即unsigned_int的范围
+
+绝对序列号为标准，比正常序列号多个开头和结尾
+
+zero_point是ISN，也就是初始序列号
+
+序列号 32位，绝对序列号64位  需要转换
+
+
+
+遇到FIN的时候 会直接关闭inbound_stream的流
+
+
+
+
+
+## lab3
+
+在这个实验里面只要求实现的是超时重传机制，但我也加入了快速重传机制。理论上当一个包超时之后就要对其进行重传，也就是每个包都要有定时器来负责重传，而这样的代价是很高的。因此，实现中是对每个TCP连接设置一个定时器，当时间超过RTO后进行重传，定时器的规则如下：
+
+- 当发送一个包并且定时器为关闭状态：打开定时器
+- 当发送一个包并且定时器为打开状态：不做任何修改
+- 当收到一个ACK并且所有包都被ACK了：关闭定时器
+- 当收到一个ACK并且仍有包未被ACK：重开定时器
+
+ 定时器通过用加法的方式来实现。
+
+超时重传使用的是指数退避算法，当进行了一次超时重传后，下一次超时的时间就会翻倍，也就是1RTO，2RTO，4RTO，8RTO… 
+
+每次检验都只检查最早的TCPmessage，每次重传也都是这最早的TCPmessage。
+
+
+
+发送窗口包括SYN和FIN， 但是接收的窗口不包括这两个大小
+
+重新发送只是把要重发的放入发送队列，并不是直接重发
+
+发送队列跟发送未确认队列的区别在于，发送队列可能会有重复的msg，而发送未确认队列是线性的增加
+
+ 收到的`ackno`可能是不合法的（比当前发送出去的最大序列号还大），则需要抛弃掉 
+
+ 
+
+
+
+
+
+
+
+## lab4
+
+//接收以太网帧并做出适当响应。
+
+//如果类型为IPv4，则返回数据报。
+
+//如果类型是ARP请求，则从“发送方”字段中学习映射，并发送ARP回复。
+
+//如果类型是ARP回复，请从“发件人”字段中学习映射。
+
+
+
+
+
+主要分为ip数据报跟mac帧，两者都包含header跟payload，当需要arp数据报的时候就把arp数据报装入payload。
+
+
+
+
+
+
+
+
+
+## lab5
+
+ 完成了一个TCP实现，和一个网络接口，网络接口负责根据ARP协议解析下一跳ip地址对应的的以太网地址（MAC物理地址）。然而ip数据报报头中并没有“下一跳ip”这个数据，它只包含源和目的的ip地址，这就需要路由器来根据路由表和这两个地址，计算出下一跳ip地址，然后交给网络接口解析。得到下一跳ip对应的物理地址后，路由器将包含着ip数据报的以太网帧转发到下一个目标设备。 
+
+
+
+需要进行校验和 ，不正确就丢弃
+
+
+
+
+
